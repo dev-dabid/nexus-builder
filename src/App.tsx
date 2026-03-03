@@ -1,69 +1,44 @@
-import { useState } from "react";
-import type { MouseEvent } from "react";
-
-interface Card {
-  id: number;
-  name: string;
-  description: string;
-}
+import { useState, useRef } from "react";
 
 const App = () => {
-  const [cards, setCards] = useState<Card[]>([
-    {
-      id: 1,
-      name: "card1",
-      description: "blablabla",
-    },
-    {
-      id: 2,
-      name: "card2",
-      description: "lalalala",
-    },
-    {
-      id: 3,
-      name: "card2",
-      description: "lalalala",
-    },
-  ]);
-  const [firstIndex, setFirstIndex] = useState<number | null>(null);
+  const [items, setItems] = useState(["Card 1", "Card 2", "Card 3", "Card 4"]);
 
-  const swapArrayElem = (e: MouseEvent<HTMLDivElement>) => {
-    const currentIndex = Number(e.currentTarget.dataset.cardId);
+  const dragItemIndex = useRef<number | null>(null);
 
-    if (firstIndex === null) {
-      setFirstIndex(currentIndex);
-    } else {
-      const secondIndex = currentIndex;
+  const handleDragStart = (index: number) => {
+    dragItemIndex.current = index;
+  };
 
-      if (firstIndex !== secondIndex) {
-        const draft = [...cards];
+  const handleDragEnter = (targetIndex: number) => {
+    const sourceIndex = dragItemIndex.current;
 
-        const temp = draft[firstIndex];
-        draft[firstIndex] = draft[secondIndex];
-        draft[secondIndex] = temp;
+    if (sourceIndex !== null && sourceIndex !== targetIndex) {
+      const newList = [...items];
+      const movedItem = newList[sourceIndex];
 
-        setCards(draft);
-      }
+      newList.splice(sourceIndex, 1);
+      newList.splice(targetIndex, 0, movedItem);
 
-      setFirstIndex(null);
+      dragItemIndex.current = targetIndex;
+
+      setItems(newList);
     }
   };
 
   return (
-    <div>
-      {cards.map((card, index) => {
-        return (
-          <div
-            className="max-w-[320px] bg-red-200 rounded-2xl"
-            onClick={swapArrayElem}
-            data-card-id={index}
-          >
-            <p>{card.id}</p>
-            <p>{card.name}</p>
-            <p>{card.description}</p>
-          </div>
-        );
-      })}
+    <div className="grid grid-cols-4 gap-7">
+      {items.map((item, index) => (
+        <div
+          key={item}
+          draggable
+          onDragStart={() => handleDragStart(index)}
+          onDragEnter={() => handleDragEnter(index)}
+          onDragOver={(e) => e.preventDefault()}
+          className="p-4 bg-blue-500 text-white cursor-move rounded shadow-md"
+        >
+          {item}
+        </div>
+      ))}
     </div>
   );
 };
